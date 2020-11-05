@@ -37,7 +37,7 @@ function realpath_noerr()
     fi
     local base="$(echo "${path}/" | \cut -d/ -f1)"
     local rest="$(echo "${path}/" | \cut -d/ -f2-)"
-    echo "$(\readlink -f "${base}")/${rest}"
+    echo "$(\readlink -f "${base}")/${rest}" | \sed 's/\/\+/\//g'
 }
 
 # Create a build directory
