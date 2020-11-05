@@ -27,11 +27,29 @@ build_root="${1}"
 shift 1
 names=(${@})
 
+# Resolve a path without an error if it does not exist yet
+function realpath_noerr()
+{
+    local path="${1}"
+    if [ "${path}" = "" ]; then
+        echo "Error: missing path" >&2
+        return 1
+    fi
+    local base="$(echo "${path}/" | \cut -d/ -f1)"
+    local rest="$(echo "${path}/" | \cut -d/ -f2-)"
+    echo "$(\readlink -f "${base}")/${rest}"
+}
+
 # Create a build directory
 function create_build_dir()
 {
-    local path="$(readlink -f "${1}")"
+    local path="$(realpath_noerr "${1}")"
     echo "${path}"
+
+    if [ "${path}" = "" ]; then
+        echo "Error: invalid path: '${path}'" >&2
+        return 1
+    fi
 
     # Check we're in the root of a cosmo repo
     local test_path="./cosmo/ACC/src"
@@ -47,7 +65,8 @@ function create_build_dir()
     fi
 
     # Copy cosmo directory (except shared)
-    \rsync -au cosmo --exclude=cosmo/src/ --exclude=cosmo/ACC/obj/* ${path}/
+    \mkdir -p "${path}"
+    \rsync -au cosmo --exclude=cosmo/{src,test}/ --exclude=cosmo/ACC/{obj,pp}/* ${path}/
 
     # Symlink shared files/dirs to local repo
     local root="${PWD}"
