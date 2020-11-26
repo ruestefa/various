@@ -74,6 +74,9 @@ function create_build_dir()
     ln -s "${root}/cosmo/src" .
     cd ACC
     cd "${root}"
+
+    # Copy dycore directory
+    rsync -au dycore ${path}/
 }
 
 # Create a build directory for each name
